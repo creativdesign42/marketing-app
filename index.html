@@ -63,6 +63,69 @@
             overflow: hidden;
             pointer-events: none;
         }
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
+            position: relative;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.show .modal-content {
+            transform: translateY(0);
+        }
+        .close-button {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #475569; /* slate-600 */
+        }
+        /* Loading Spinner */
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #0284c7; /* sky-600 */
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: none; /* Hidden by default */
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .spinner.show {
+            display: block;
+        }
     </style>
 </head>
 <body class="text-slate-700">
@@ -102,12 +165,17 @@
                         <p class="text-sm text-slate-600">Mission-driven focus on being a "daily financial partner" builds long-term value.</p>
                     </div>
                 </div>
+                <div class="text-center mt-8">
+                    <button id="generateSwotActionPlanBtn" class="bg-sky-600 text-white py-2 px-6 rounded-full font-semibold shadow-md hover:bg-sky-700 transition duration-300">
+                        Generate SWOT Action Plan ✨
+                    </button>
+                </div>
             </section>
 
             <section id="markets" class="mb-16">
                 <h2 class="text-3xl font-bold text-slate-800 mb-4 text-center">Target Market Deep Dive</h2>
                 <p class="max-w-3xl mx-auto text-center text-slate-600 mb-8">
-                    OAM's success hinges on understanding the unique financial pain points of specific professions. Select a market segment below to see their challenges and how OAM provides the perfect solution. This focus ensures marketing efforts are relevant and effective.
+                    OAM's success hinges on understanding the unique financial pain points of specific professions. Select a market segment below to see their challenges and how OAM provides the perfect solution. Now, you can also use AI to generate a quick pitch or content ideas for each segment!
                 </p>
 
                 <div id="market-filters" class="flex flex-wrap justify-center gap-2 mb-8">
@@ -127,6 +195,11 @@
                 </p>
                 <div class="chart-container">
                     <canvas id="strategyChart"></canvas>
+                </div>
+                <div class="text-center mt-8">
+                    <button id="generateContentIdeasBtn" class="bg-sky-600 text-white py-2 px-6 rounded-full font-semibold shadow-md hover:bg-sky-700 transition duration-300">
+                        Generate Content Ideas ✨
+                    </button>
                 </div>
             </section>
 
@@ -198,6 +271,41 @@
 
     </div>
 
+    <!-- Modal for LLM Output -->
+    <div id="llmModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-button" id="closeModal">&times;</button>
+            <h3 id="modalTitle" class="text-2xl font-bold text-slate-800 mb-4"></h3>
+            <div id="modalBody" class="text-slate-700 whitespace-pre-wrap"></div>
+            <div id="spinner" class="spinner mt-4"></div>
+        </div>
+    </div>
+
+    <!-- Modal for SWOT Input -->
+    <div id="swotInputModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-button" id="closeSwotModal">&times;</button>
+            <h3 class="text-2xl font-bold text-slate-800 mb-4">Generate SWOT Action Plan</h3>
+            <p class="text-slate-600 mb-4">Select a SWOT category and provide a specific item to get actionable insights.</p>
+            <div class="mb-4">
+                <label for="swotCategory" class="block text-slate-700 text-sm font-bold mb-2">SWOT Category:</label>
+                <select id="swotCategory" class="shadow appearance-none border rounded w-full py-2 px-3 text-slate-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="Strength">Strength</option>
+                    <option value="Weakness">Weakness</option>
+                    <option value="Opportunity">Opportunity</option>
+                    <option value="Threat">Threat</option>
+                </select>
+            </div>
+            <div class="mb-6">
+                <label for="swotItem" class="block text-slate-700 text-sm font-bold mb-2">Specific SWOT Item (e.g., "Low-cost business model", "Automation disruption"):</label>
+                <input type="text" id="swotItem" class="shadow appearance-none border rounded w-full py-2 px-3 text-slate-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter SWOT item...">
+            </div>
+            <button id="submitSwotBtn" class="bg-sky-600 text-white py-2 px-6 rounded-full font-semibold shadow-md hover:bg-sky-700 transition duration-300">
+                Generate Plan
+            </button>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const marketData = [
@@ -247,7 +355,157 @@
 
             const marketGrid = document.getElementById('market-grid');
             const filterButtons = document.querySelectorAll('#market-filters button');
+            const llmModal = document.getElementById('llmModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            const closeModalBtn = document.getElementById('closeModal');
+            const spinner = document.getElementById('spinner');
+            const generateContentIdeasBtn = document.getElementById('generateContentIdeasBtn');
+            const generateSwotActionPlanBtn = document.getElementById('generateSwotActionPlanBtn');
+            const swotInputModal = document.getElementById('swotInputModal');
+            const closeSwotModalBtn = document.getElementById('closeSwotModal');
+            const swotCategorySelect = document.getElementById('swotCategory');
+            const swotItemInput = document.getElementById('swotItem');
+            const submitSwotBtn = document.getElementById('submitSwotBtn');
 
+
+            // --- Modal Functions ---
+            function showModal(title, content) {
+                modalTitle.textContent = title;
+                modalBody.textContent = content;
+                llmModal.classList.add('show');
+            }
+
+            function hideModal() {
+                llmModal.classList.remove('show');
+                modalTitle.textContent = '';
+                modalBody.textContent = '';
+            }
+
+            closeModalBtn.addEventListener('click', hideModal);
+            llmModal.addEventListener('click', (e) => {
+                if (e.target === llmModal) {
+                    hideModal();
+                }
+            });
+
+            // --- SWOT Input Modal Functions ---
+            function showSwotInputModal() {
+                swotInputModal.classList.add('show');
+            }
+
+            function hideSwotInputModal() {
+                swotInputModal.classList.remove('show');
+                swotItemInput.value = ''; // Clear input on close
+                swotCategorySelect.value = 'Strength'; // Reset to default
+            }
+
+            closeSwotModalBtn.addEventListener('click', hideSwotInputModal);
+            swotInputModal.addEventListener('click', (e) => {
+                if (e.target === swotInputModal) {
+                    hideSwotInputModal();
+                }
+            });
+
+
+            // --- Spinner Functions ---
+            function showSpinner() {
+                spinner.classList.add('show');
+                modalBody.textContent = ''; // Clear previous content
+                modalTitle.textContent = 'Generating...';
+                llmModal.classList.add('show'); // Ensure modal is visible
+            }
+
+            function hideSpinner() {
+                spinner.classList.remove('show');
+            }
+
+            // --- Gemini API Call Function ---
+            async function callGeminiAPI(prompt) {
+                showSpinner();
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // Canvas will provide this at runtime
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        return result.candidates[0].content.parts[0].text;
+                    } else {
+                        console.error('Gemini API response structure unexpected:', result);
+                        return 'Failed to generate content. Please try again.';
+                    }
+                } catch (error) {
+                    console.error('Error calling Gemini API:', error);
+                    return 'An error occurred while connecting to the AI. Please check your network and try again.';
+                } finally {
+                    hideSpinner();
+                }
+            }
+
+            // --- Feature 1: Generate Niche Pitch ---
+            async function generatePitch(marketName, painPoints, solution) {
+                const prompt = `Generate a concise, compelling 2-3 sentence pitch for Outsourced Accounting Manager (OAM) targeting "${marketName}". Highlight their main pain points: "${painPoints}" and how OAM's solution: "${solution}" directly addresses them. Make it professional and benefit-oriented.`;
+                const generatedPitch = await callGeminiAPI(prompt);
+                showModal(`Pitch for ${marketName}`, generatedPitch);
+            }
+
+            // --- Feature 2: Generate Content Ideas ---
+            async function generateContentIdeas() {
+                const marketNames = marketData.map(m => m.name).join(', ');
+                const marketInput = prompt(`Enter a target market segment (e.g., "Hair Stylists", "E-commerce Sellers", or "All" for general ideas):\nAvailable: ${marketNames}`);
+                
+                if (!marketInput) {
+                    return; // User cancelled
+                }
+
+                let promptText;
+                if (marketInput.toLowerCase() === 'all') {
+                    promptText = `Generate 5-7 blog post or social media content ideas for Outsourced Accounting Manager, focusing on general financial pain points for small service businesses in Boise. Make them engaging and actionable.`;
+                } else {
+                    const selectedMarket = marketData.find(m => m.name.toLowerCase().includes(marketInput.toLowerCase()));
+                    if (selectedMarket) {
+                        promptText = `Generate 5-7 specific blog post or social media content ideas for Outsourced Accounting Manager targeting "${selectedMarket.name}". Focus on their pain points: "${selectedMarket.painPoints}" and OAM's solutions: "${selectedMarket.solution}". Make them engaging and actionable.`;
+                    } else {
+                        showModal("Invalid Market", "Please enter a valid market segment from the list.");
+                        return;
+                    }
+                }
+                
+                const generatedIdeas = await callGeminiAPI(promptText);
+                showModal(`Content Ideas for ${marketInput}`, generatedIdeas);
+            }
+
+            // --- Feature 3: Generate SWOT Action Plan ---
+            async function generateSwotActionPlan() {
+                const category = swotCategorySelect.value;
+                const item = swotItemInput.value.trim();
+
+                if (!item) {
+                    showModal("Input Required", "Please enter a specific SWOT item.");
+                    return;
+                }
+
+                hideSwotInputModal(); // Hide the input modal
+
+                const prompt = `Given the SWOT category '${category}' and the item '${item}' for Outsourced Accounting Manager (OAM), a financial services firm specializing in accounting support for service professionals in Boise, generate 3-5 actionable steps or insights. Focus on how OAM can leverage this ${category.toLowerCase()} or mitigate/address this ${category.toLowerCase()} within their low-cost, highly targeted marketing strategy.`;
+                const generatedPlan = await callGeminiAPI(prompt);
+                showModal(`Action Plan for ${category}: ${item}`, generatedPlan);
+            }
+
+
+            // --- Render Cards with new buttons ---
             function renderCards(filter = 'all') {
                 marketGrid.innerHTML = '';
                 const filteredData = marketData.filter(item => {
@@ -265,8 +523,16 @@
                             <p class="text-sm text-slate-600 mb-1"><strong class="text-slate-700">Pain Points:</strong> ${item.painPoints}</p>
                             <p class="text-sm text-sky-700"><strong class="text-sky-800">OAM Solution:</strong> ${item.solution}</p>
                         </div>
+                        <button class="generate-pitch-btn bg-sky-100 text-sky-800 py-2 px-4 rounded-full text-sm font-medium mt-4 hover:bg-sky-200 transition duration-300">
+                            Generate Pitch ✨
+                        </button>
                     `;
                     marketGrid.appendChild(card);
+
+                    // Add event listener for the new button
+                    card.querySelector('.generate-pitch-btn').addEventListener('click', () => {
+                        generatePitch(item.name, item.painPoints, item.solution);
+                    });
                 });
             }
 
@@ -279,7 +545,15 @@
                 });
             });
 
-            renderCards();
+            renderCards(); // Initial render
+
+            // Event listener for Content Ideas button
+            generateContentIdeasBtn.addEventListener('click', generateContentIdeas);
+
+            // Event listener for SWOT Action Plan button
+            generateSwotActionPlanBtn.addEventListener('click', showSwotInputModal);
+            submitSwotBtn.addEventListener('click', generateSwotActionPlan);
+
 
             const ctx = document.getElementById('strategyChart').getContext('2d');
             const strategyChart = new Chart(ctx, {
@@ -370,4 +644,3 @@
     </script>
 </body>
 </html>
-
