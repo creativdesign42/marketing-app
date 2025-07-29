@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Marketing Strategy | Outsourced Accounting Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: "Calm Harmony" - A palette grounded in warm neutrals (bg-stone-50, bg-stone-100) with a professional blue (bg-sky-600, text-sky-800) for primary actions and accents, and subtle grays (text-slate-600, text-slate-800) for text to create a supportive and integrated feel. -->
+    <!-- Application Structure Plan: A single-page dashboard structure is used to present a holistic view of the marketing plan. The layout is divided into clear, thematic sections: 1) A top-level summary of OAM's core advantages. 2) An interactive "Target Market Deep Dive" section using filterable cards to allow users to easily compare and focus on specific client segments. 3) A "Strategic Growth Channels" section with an interactive chart to visualize the impact vs. cost of different marketing tactics. 4) A "Phased Implementation Plan" to provide a clear, actionable roadmap. This non-linear, task-oriented design was chosen over a simple report structure to empower the user to explore the data based on their own priorities, making the complex strategy more digestible and actionable. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Target Market Segments (Pain Points, Needs). Goal: Organize & Compare. Viz/Presentation: Interactive Filterable Cards (HTML/CSS/JS). Interaction: Users click buttons to filter the display. Justification: Allows for easy comparison and focused analysis of each niche, which is central to the report's strategy. Library/Method: Vanilla JS and Tailwind CSS.
+        - Report Info: Marketing Strategies. Goal: Compare & Inform. Viz/Presentation: Interactive Bar Chart (Chart.js). Interaction: Tooltips on hover provide details. Justification: Visually represents the core "low-cost, high-impact" theme of the marketing plan, making the strategic priorities immediately obvious. Library/Method: Chart.js.
+        - Report Info: Implementation Plan. Goal: Organize & Inform. Viz/Presentation: Phased timeline diagram (HTML/CSS). Interaction: Static visual. Justification: Clearly communicates the sequence of actions in a simple, easy-to-understand format. Library/Method: Tailwind CSS.
+        - Report Info: OAM's Competitive Advantages. Goal: Inform. Viz/Presentation: Icon-based feature list (HTML/CSS). Interaction: Static visual. Justification: Quickly communicates core strengths at the start of the application to frame the strategy. Library/Method: Tailwind CSS with Unicode characters.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 50vh;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 450px;
+            }
+        }
+        .nav-button {
+            transition: all 0.3s ease;
+        }
+        .nav-button.active {
+            background-color: #0284c7; /* sky-600 */
+            color: white;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .market-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.5s ease;
+            opacity: 1;
+            transform: scale(1);
+        }
+        .market-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .market-card.hidden {
+            opacity: 0;
+            transform: scale(0.9);
+            height: 0;
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="text-slate-700">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        
+        <header class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-slate-800 mb-2">Outsourced Accounting Manager</h1>
+            <p class="text-xl text-sky-700 font-medium">Interactive Marketing Strategy for Boise's Service Professionals</p>
+        </header>
+
+        <main>
+            <section id="overview" class="mb-16 bg-white p-8 rounded-2xl shadow-sm">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4 text-center">A Foundation for Targeted Growth</h2>
+                <p class="max-w-3xl mx-auto text-center text-slate-600 mb-8">
+                    This interactive plan outlines a low-cost, high-impact marketing strategy for Outsourced Accounting Manager (OAM). Our approach is built on OAM's core competitive advantages, which allow for precise targeting of underserved niches within the Boise market. Explore the sections below to understand the strategy.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-center">
+                    <div class="bg-slate-50 p-6 rounded-xl">
+                        <div class="text-4xl mb-3">📍</div>
+                        <h3 class="font-bold text-lg text-slate-800">Local Niche Focus</h3>
+                        <p class="text-sm text-slate-600">Deep knowledge of Boise's service sector enables hyper-targeted messaging.</p>
+                    </div>
+                    <div class="bg-slate-50 p-6 rounded-xl">
+                        <div class="text-4xl mb-3">💰</div>
+                        <h3 class="font-bold text-lg text-slate-800">Low Overhead Model</h3>
+                        <p class="text-sm text-slate-600">A lean structure allows for competitive pricing and higher marketing ROI.</p>
+                    </div>
+                    <div class="bg-slate-50 p-6 rounded-xl">
+                        <div class="text-4xl mb-3">💻</div>
+                        <h3 class="font-bold text-lg text-slate-800">Modern Client Experience</h3>
+                        <p class="text-sm text-slate-600">Tech-enabled services (QuickBooks, client portal) attract modern business owners.</p>
+                    </div>
+                    <div class="bg-slate-50 p-6 rounded-xl">
+                        <div class="text-4xl mb-3">🤝</div>
+                        <h3 class="font-bold text-lg text-slate-800">Trust & Partnership</h3>
+                        <p class="text-sm text-slate-600">Mission-driven focus on being a "daily financial partner" builds long-term value.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="markets" class="mb-16">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4 text-center">Target Market Deep Dive</h2>
+                <p class="max-w-3xl mx-auto text-center text-slate-600 mb-8">
+                    OAM's success hinges on understanding the unique financial pain points of specific professions. Select a market segment below to see their challenges and how OAM provides the perfect solution. This focus ensures marketing efforts are relevant and effective.
+                </p>
+
+                <div id="market-filters" class="flex flex-wrap justify-center gap-2 mb-8">
+                    <button data-filter="all" class="nav-button active py-2 px-4 bg-white text-slate-700 rounded-full text-sm font-medium shadow-sm hover:bg-slate-100">All Segments</button>
+                    <button data-filter="primary" class="nav-button py-2 px-4 bg-white text-slate-700 rounded-full text-sm font-medium shadow-sm hover:bg-slate-100">Primary Targets</button>
+                    <button data-filter="secondary" class="nav-button py-2 px-4 bg-white text-slate-700 rounded-full text-sm font-medium shadow-sm hover:bg-slate-100">Secondary Targets</button>
+                </div>
+                
+                <div id="market-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                </div>
+            </section>
+
+            <section id="strategies" class="mb-16 bg-white p-8 rounded-2xl shadow-sm">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4 text-center">Strategic Growth Channels</h2>
+                 <p class="max-w-3xl mx-auto text-center text-slate-600 mb-8">
+                    To achieve growth with a modest budget, our strategy prioritizes channels offering the best balance of low cost and high targeting potential. The chart below visualizes the recommended marketing mix, highlighting the efficiency of each channel. Hover over the bars to see why each channel was chosen.
+                </p>
+                <div class="chart-container">
+                    <canvas id="strategyChart"></canvas>
+                </div>
+            </section>
+
+            <section id="implementation" class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4 text-center">Phased Implementation Roadmap</h2>
+                <p class="max-w-3xl mx-auto text-center text-slate-600 mb-12">
+                    A phased rollout ensures that marketing efforts build upon each other, maximizing impact while managing costs effectively. We begin with low-cost, high-impact foundational activities and scale into broader initiatives as the client base grows.
+                </p>
+                <div class="relative">
+                    <div class="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-0.5 bg-slate-200" aria-hidden="true"></div>
+                    <div class="space-y-12">
+                        <div class="flex flex-col md:flex-row items-center">
+                            <div class="md:w-5/12"></div>
+                            <div class="w-12 h-12 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-xl z-10 shadow-md">1</div>
+                            <div class="md:w-5/12 p-4">
+                                <div class="bg-white p-6 rounded-xl shadow-md">
+                                    <h3 class="font-bold text-lg text-sky-800 mb-2">Phase 1: Foundation (Months 1-3)</h3>
+                                    <p class="text-sm text-slate-600">Focus on organic, low-cost channels to build initial momentum and capture low-hanging fruit.</p>
+                                    <ul class="mt-3 text-xs space-y-1 list-disc list-inside text-slate-500">
+                                        <li>Formalize Referral Program</li>
+                                        <li>Optimize Local SEO & Google My Business</li>
+                                        <li>Engage in Niche Social Media Groups</li>
+                                        <li>Create Cornerstone Content (Blogs/Guides)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col md:flex-row items-center">
+                            <div class="md:w-5/12 p-4 order-2 md:order-1">
+                                <div class="bg-white p-6 rounded-xl shadow-md">
+                                    <h3 class="font-bold text-lg text-sky-800 mb-2">Phase 2: Expansion (Months 4-9)</h3>
+                                    <p class="text-sm text-slate-600">Invest in scalable strategies to broaden reach and build authority within target niches.</p>
+                                    <ul class="mt-3 text-xs space-y-1 list-disc list-inside text-slate-500">
+                                        <li>Launch Targeted Digital Ads (Small Scale)</li>
+                                        <li>Pursue Strategic Partnerships</li>
+                                        <li>Attend Local Business Expos</li>
+                                        <li>Develop Niche-Specific Webinars</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-xl z-10 shadow-md order-1 md:order-2">2</div>
+                            <div class="md:w-5/12 order-3"></div>
+                        </div>
+                        <div class="flex flex-col md:flex-row items-center">
+                            <div class="md:w-5/12"></div>
+                            <div class="w-12 h-12 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-xl z-10 shadow-md">3</div>
+                            <div class="md:w-5/12 p-4">
+                                <div class="bg-white p-6 rounded-xl shadow-md">
+                                    <h3 class="font-bold text-lg text-sky-800 mb-2">Phase 3: Scaling (Months 10+)</h3>
+                                    <p class="text-sm text-slate-600">Optimize and scale successful channels based on performance data to drive sustained growth.</p>
+                                    <ul class="mt-3 text-xs space-y-1 list-disc list-inside text-slate-500">
+                                        <li>Increase Budget for Proven Ad Campaigns</li>
+                                        <li>Expand Service Bundles</li>
+                                        <li>Create Advanced Digital Resources</li>
+                                        <li>Explore Geographic Expansion (Meridian, Nampa)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="text-center mt-16 pt-8 border-t border-slate-200">
+            <p class="text-sm text-slate-500">&copy; 2025 Outsourced Accounting Manager. All Rights Reserved.</p>
+            <p class="text-xs text-slate-400 mt-1">This interactive report was generated based on the OAM Business Plan.</p>
+        </footer>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const marketData = [
+                {
+                    name: 'Hair Stylists & Aestheticians',
+                    category: 'primary',
+                    icon: '✂️',
+                    painPoints: 'Time-consuming DIY bookkeeping, tax confusion, and managing finances for diversified services.',
+                    solution: 'OAM saves time, ensures compliance, maximizes deductions, and provides clarity on profitability across all services.'
+                },
+                {
+                    name: 'Tattoo Artists',
+                    category: 'primary',
+                    icon: '✒️',
+                    painPoints: 'Administrative tasks detract from creative work, studio tax compliance is complex, and profitability is unclear.',
+                    solution: 'OAM handles all financial admin, ensuring tax compliance and providing clear reports on studio profitability.'
+                },
+                {
+                    name: 'Daycare Providers',
+                    category: 'secondary',
+                    icon: '🧸',
+                    painPoints: 'Tight budgets due to high wage costs, complex regulations, and inconsistent parent payments.',
+                    solution: 'OAM optimizes financial management to improve sustainability, handles payroll, and streamlines invoicing.'
+                },
+                {
+                    name: 'E-commerce Sellers',
+                    category: 'secondary',
+                    icon: '📦',
+                    painPoints: 'Complex income/cost tracking (fees, returns), multi-state sales tax, and cash flow challenges.',
+                    solution: 'OAM provides specialized e-commerce bookkeeping for accurate profit margins and cash flow visibility.'
+                },
+                {
+                    name: 'Tradespeople (Electricians, HVAC)',
+                    category: 'secondary',
+                    icon: '🛠️',
+                    painPoints: 'Complex job costing, managing rising labor costs, cash flow strain, and complex payroll.',
+                    solution: 'OAM implements robust job costing, manages cash flow, and handles complex payroll to boost profitability.'
+                },
+                {
+                    name: 'Solo Operators & LLCs',
+                    category: 'primary',
+                    icon: '👤',
+                    painPoints: 'Feeling overlooked by larger firms, needing affordable guidance, and struggling with being the "everything" person.',
+                    solution: 'OAM acts as a dedicated financial partner, offering affordable, personalized support for solo entrepreneurs.'
+                }
+            ];
+
+            const marketGrid = document.getElementById('market-grid');
+            const filterButtons = document.querySelectorAll('#market-filters button');
+
+            function renderCards(filter = 'all') {
+                marketGrid.innerHTML = '';
+                const filteredData = marketData.filter(item => {
+                    if (filter === 'all') return true;
+                    return item.category === filter;
+                });
+
+                filteredData.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'market-card bg-white p-6 rounded-xl shadow-sm flex flex-col';
+                    card.innerHTML = `
+                        <div class="text-4xl mb-4">${item.icon}</div>
+                        <h3 class="font-bold text-xl text-slate-800 mb-2">${item.name}</h3>
+                        <div class="flex-grow">
+                            <p class="text-sm text-slate-600 mb-1"><strong class="text-slate-700">Pain Points:</strong> ${item.painPoints}</p>
+                            <p class="text-sm text-sky-700"><strong class="text-sky-800">OAM Solution:</strong> ${item.solution}</p>
+                        </div>
+                    `;
+                    marketGrid.appendChild(card);
+                });
+            }
+
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    const filter = button.getAttribute('data-filter');
+                    renderCards(filter);
+                });
+            });
+
+            renderCards();
+
+            const ctx = document.getElementById('strategyChart').getContext('2d');
+            const strategyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Referrals & WOM', 'Local SEO / GMB', 'Content Marketing', 'Social Engagement', 'Strategic Partnerships', 'Digital Ads (Targeted)'],
+                    datasets: [{
+                        label: 'Impact Score (Targeting & Conversion Potential)',
+                        data: [95, 90, 85, 80, 75, 70],
+                        backgroundColor: 'rgba(2, 132, 199, 0.7)', // sky-600
+                        borderColor: 'rgba(2, 132, 199, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                    },
+                    {
+                        label: 'Relative Cost Score (Lower is Better)',
+                        data: [10, 15, 20, 15, 30, 40],
+                        backgroundColor: 'rgba(100, 116, 139, 0.6)', // slate-500
+                        borderColor: 'rgba(100, 116, 139, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            stacked: false,
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            stacked: false,
+                            grid: {
+                                display: false,
+                            },
+                            ticks: {
+                                font: {
+                                    size: 12,
+                                    weight: '500'
+                                },
+                                color: '#334155' // slate-700
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    size: 12
+                                },
+                                color: '#475569' // slate-600
+                            }
+                        },
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: '#0f172a', // slate-900
+                            titleFont: {
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 12
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.x !== null) {
+                                        label += context.parsed.x;
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
